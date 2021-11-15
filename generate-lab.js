@@ -131,7 +131,7 @@ class Writer {
 	for (let a = -128; a < 129; a+=15) {
 		for (let b = -128; b < 129; b+=15) {
 			for (let l = 0; l < 101; l += 15) {
-				writer.row([(l / 100), a, b]);
+				writer.row([l, a, b]);
 			}
 		}
 	}
@@ -141,7 +141,7 @@ class Writer {
 		let a = 128;
 		for (let b = -128; b < 129; b += 15) {
 			for (let l = 0; l < 101; l += 15) {
-				writer.row([(l / 100), a, b]);
+				writer.row([l, a, b]);
 			}
 		}
 	}
@@ -151,7 +151,7 @@ class Writer {
 		let b = 128;
 		for (let a = -128; a < 129; a += 15) {
 			for (let l = 0; l < 101; l += 15) {
-				writer.row([(l / 100), a, b]);
+				writer.row([l, a, b]);
 			}
 		}
 	}
@@ -161,7 +161,7 @@ class Writer {
 		let l = 100;
 		for (let a = -128; a < 129; a += 15) {
 			for (let b = -128; b < 129; b += 15) {
-				writer.row([(l / 100), a, b]);
+				writer.row([l, a, b]);
 			}
 		}
 	}
