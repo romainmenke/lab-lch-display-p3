@@ -1,0 +1,19 @@
+{
+  "name": "lab-lch-display-p3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "conversion.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/romainmenke/lab-lch-display-p3.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/romainmenke/lab-lch-display-p3/issues"
+  },
+  "homepage": "https://github.com/romainmenke/lab-lch-display-p3#readme"
+}
