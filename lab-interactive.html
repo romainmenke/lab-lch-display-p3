@@ -31,7 +31,7 @@
 	<div style="width: 1020px; display: flex; flex-wrap: wrap;">
 		<div class="container" style="padding-right: 20px">
 			<div style="display: block; width: 100%">
-				<p><b>Lab converted to sRGB.</b></p>
+				<p><b>LAB converted to sRGB.</b></p>
 				
 				<label for="outline-out-of-gamut-srgb">Outline out of gamut colors for sRGB</label>
 				<input type="checkbox" name="" id="outline-out-of-gamut-srgb" onchange="self.renderColors()">
@@ -40,11 +40,11 @@
 		</div>
 		<div class="container">
 			<div style="display: block; width: 100%">
-				<p><b>Lab rendered natively. (only in Safari >= 15)</b></p>
+				<p><b>LAB rendered natively. (only in Safari >= 15)</b></p>
 
 				<label for="outline-out-of-gamut-display-p3">Outline out of gamut colors for Display-P3</label>
 				<input type="checkbox" name="" id="outline-out-of-gamut-display-p3" onchange="self.renderColors()">
-				<p><i>It seems as if Safari displays lab with what is available Display-P3.<br>Colors out of gamut (with outline) for Display-P3 might be clipped or modified in other ways.</i></p>
+				<p><i>It seems as if Safari displays LAB with what is available Display-P3.<br>Colors out of gamut (with outline) for Display-P3 might be clipped or modified in other ways.</i></p>
 			</div>
 		</div>
 		<div id="container-rgb" class="container" style="padding-right: 20px"></div>
