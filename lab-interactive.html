@@ -4,7 +4,7 @@
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Lab : interactive</title>
+	<title>LAB : interactive</title>
 
 	<style>
 		.container {
@@ -34,6 +34,10 @@
 	</style>
 </head>
 <body>
+	<h1>LAB conversions</h1>
+	<p>Interactive color checker for LAB conversions.<br>Read more : <a href="https://drafts.csswg.org/css-color-4/#binsearch">https://drafts.csswg.org/css-color-4/#binsearch</a></p>
+	
+	<p><i>This code is not written for performance and will run very slowly on older/under powered machines.</i></p>
 	<div style="box-sizing: border-box; padding: 20px;">
 		<label for="lightness">Adjust Lightness value</label>
 		<input type="range" name="" id="lightness" min="0" max="100" step="1" onchange="self.renderColors()">
@@ -44,7 +48,7 @@
 
 		<div class="container" style="padding-right: 20px">
 			<div style="display: block; width: 100%">
-				<p><b>LAB converted to sRGB.</b></p>
+				<h2>LAB converted to sRGB.</h2>
 				
 				<label for="outline-out-of-gamut-srgb">Outline out of gamut colors for sRGB</label>
 				<input type="checkbox" name="" id="outline-out-of-gamut-srgb" onchange="self.renderColors()">
@@ -56,7 +60,7 @@
 
 		<div class="container" style="padding-right: 20px">
 			<div style="display: block; width: 100%">
-				<p><b>LAB rendered natively. (only in Safari >= 15)</b></p>
+				<h2>LAB rendered natively.<br>(only in Safari >= 15)</h2>
 
 				<label for="outline-out-of-gamut-display-p3">Outline out of gamut colors for Display-P3</label>
 				<input type="checkbox" name="" id="outline-out-of-gamut-display-p3" onchange="self.renderColors()">
@@ -68,7 +72,7 @@
 
 		<div class="container">
 			<div style="display: block; width: 100%">
-				<p><b>LAB converted to sRGB with <a href="https://facelessuser.github.io/coloraide/">coloraide</a>.</b></p>
+				<h2>LAB converted to sRGB with <a href="https://facelessuser.github.io/coloraide/">coloraide</a>.</h2>
 			</div>
 		
 			<div id="palette-rgb-coloraide"></div>
