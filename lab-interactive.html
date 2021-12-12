@@ -22,13 +22,20 @@
 </head>
 <body>
 	<div style="width: 100%; padding: 50px;">
-		<label for="lightness">Adjust L value</label>
+		<label for="lightness">Adjust Lightness value</label>
 		<input type="range" name="" id="lightness" min="0" max="100" step="1" onchange="self.renderColors()">
 
 		<br>
+		<br>
 
-		<label for="outline-out-of-gamut">Outline colors which are out of sRGB gamut</label>
+		<label for="outline-out-of-gamut">Outline colors which are out gamut</label>
 		<input type="checkbox" name="" id="outline-out-of-gamut" onchange="self.renderColors()">
+
+		<br>
+		<br>
+
+		<label for="outline-out-of-gamut-color-space">Choose color spaced used to check in gamut.<br>Defaults to sRGB, switches to Display P3 when toggled.</label>
+		<input type="checkbox" name="" id="outline-out-of-gamut-color-space" onchange="self.renderColors()">
 	</div>
 
 	<div style="width: 1020px; display: flex; flex-wrap: wrap;">
@@ -39,7 +46,7 @@
 	</div>
 
 	<script type="module">
-		import { labToSRgb } from "./dist/convert-lab-to-srgb.js";
+		import { labToSRgb, labToP3 } from "./dist/convert-lab-to-srgb.js";
 
 		const matrixRowSize = 50;
 
@@ -50,6 +57,8 @@
 		self.renderColors = function renderColors() {
 			const lightness = document.getElementById("lightness").value * 1;
 			const showOutline = document.getElementById("outline-out-of-gamut").checked;
+			const outOfGamutColorSpaceIsDisplayP3 = document.getElementById("outline-out-of-gamut-color-space").checked;
+
 			for (let x = 0; x < matrixRowSize; x++) {
 				if (!matrix[x]) {
 					matrix[x] = [];
@@ -63,16 +72,28 @@
 						};
 					}
 
-					const { color: color, inGamut: inGamut } = labToSRgb([lightness, ((255 / matrixRowSize * x) - 127), ((255 / matrixRowSize * y) - 127)]);
+					const lab = [lightness, ((255 / matrixRowSize * x) - 127), ((255 / matrixRowSize * y) - 127)];
+					const { color: color, inGamut: inGamut } = labToSRgb(lab);
 					matrix[x][y].rgb.style.backgroundColor = `rgb(${Math.round(color[0] * 255)}, ${Math.round(color[1] * 255)}, ${Math.round(color[2] * 255)})`;
 					matrix[x][y].rgb.setAttribute('title', `rgb(${Math.round(color[0] * 255)}, ${Math.round(color[1] * 255)}, ${Math.round(color[2] * 255)})\nlab(${lightness}% ${Math.round((255 / matrixRowSize * x) - 127)} ${Math.round((255 / matrixRowSize * y) - 127)})`);
 
-					if (!inGamut && showOutline) {
-						if (lightness < 50) {
-							matrix[x][y].rgb.style.outline = "0.5px dotted white";
+					if (showOutline) {
+						if (outOfGamutColorSpaceIsDisplayP3 && !labToP3(lab).inGamut) {
+							if (lightness < 50) {
+								matrix[x][y].rgb.style.outline = "0.5px dotted white";
+							} else {
+								matrix[x][y].rgb.style.outline = "0.5px dotted black";
+							}
+						} else if (!outOfGamutColorSpaceIsDisplayP3 && !inGamut) {
+							if (lightness < 50) {
+								matrix[x][y].rgb.style.outline = "0.5px dotted white";
+							} else {
+								matrix[x][y].rgb.style.outline = "0.5px dotted black";
+							}
 						} else {
-							matrix[x][y].rgb.style.outline = "0.5px dotted black";
+							matrix[x][y].rgb.style.outline = "0.5px dotted transparent";
 						}
+
 					} else {
 						matrix[x][y].rgb.style.outline = "0.5px dotted transparent";
 					}
