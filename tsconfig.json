@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "allowJs": false,
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "declarationDir": "dist",
+    "lib": ["es2020", "DOM"],
+    "module": "es6",
+    "moduleResolution": "node",
+    "outDir": "dist",
+    "target": "es2020"
+  },
+  "include": ["./css-color-4/**/*"],
+  "exclude": ["dist"]
+}

@@ -1,7 +1,6 @@
-const fs = require('fs');
-const uuid = require('crypto').randomUUID;
-const conversions = require('./conversion.js');
-const { Lab_to_sRGB, Lab_to_P3 } = conversions;
+import fs from 'fs';
+import { randomUUID as uuid } from 'crypto';
+import { labToSRgb } from './dist/convert-lab-to-srgb.js';
 
 class Writer {
 	constructor() {
@@ -12,8 +11,9 @@ class Writer {
 	row(lab) {
 		const id = uuid();
 
-		const sRGB = Lab_to_sRGB(lab);
-		const p3 = Lab_to_P3(lab);
+		const { color: sRGB, inGamut: inGamut } = labToSRgb(lab);
+		const p3 = [];
+		// const p3 = Lab_to_P3(lab);
 
 		this.css.push(`
 			.raw-${id} {
@@ -21,7 +21,7 @@ class Writer {
 			}
 
 			.rgb-${id} {
-				background-color: rgb(${sRGB[0]*255}, ${sRGB[1]*255}, ${sRGB[2]*255});
+				background-color: rgb(${Math.round(sRGB[0]*255)}, ${Math.round(sRGB[1]*255)}, ${Math.round(sRGB[2]*255)});
 			}
 
 			.display-p3-${id} {
@@ -31,10 +31,10 @@ class Writer {
 		
 		this.html.push(`
 			<div class="swatch">
-				<div class="raw-${id}"></div>
-				<div class="rgb-${id}"></div>
-				<div class="display-p3-${id}"></div>
-				<div class="raw-${id}"></div>
+				<div class="raw-${id}" title="${inGamut ? 'in' : 'out'} : lab(${lab[0]}% ${lab[1]} ${lab[2]})"></div>
+				<div class="rgb-${id}" title="${inGamut ? 'in' : 'out'} : rgb(${Math.round(sRGB[0]*255)}, ${Math.round(sRGB[1]*255)}, ${Math.round(sRGB[2]*255)})"></div>
+				<!-- <div class="display-p3-${id}"></div> -->
+				<!-- <div class="raw-${id}"></div> -->
 			</div>
 		`);
 
@@ -102,7 +102,7 @@ class Writer {
 		<div class="heading">
 			<div>raw</div>
 			<div>lab -> sRGB</div>
-			<div>lab -> P3</div>
+			<!-- <div>lab -> P3</div> -->
 			<div>raw</div>
 		</div>
 	`);
@@ -127,20 +127,11 @@ class Writer {
 	// negative L
 	writer.row([-(1/100), 20, 20])
 
-	// Full range
-	for (let a = -128; a < 129; a+=15) {
-		for (let b = -128; b < 129; b+=15) {
-			for (let l = 0; l < 101; l += 15) {
-				writer.row([l, a, b]);
-			}
-		}
-	}
-
 	// Max value for A
 	{
 		let a = 128;
-		for (let b = -128; b < 129; b += 15) {
-			for (let l = 0; l < 101; l += 15) {
+		for (let b = -128; b < 129; b += 10) {
+			for (let l = 0; l < 101; l += 10) {
 				writer.row([l, a, b]);
 			}
 		}
@@ -149,8 +140,8 @@ class Writer {
 	// Max value for B
 	{
 		let b = 128;
-		for (let a = -128; a < 129; a += 15) {
-			for (let l = 0; l < 101; l += 15) {
+		for (let a = -128; a < 129; a += 10) {
+			for (let l = 0; l < 101; l += 10) {
 				writer.row([l, a, b]);
 			}
 		}
@@ -159,8 +150,17 @@ class Writer {
 	// Max value for L
 	{
 		let l = 100;
-		for (let a = -128; a < 129; a += 15) {
-			for (let b = -128; b < 129; b += 15) {
+		for (let a = -128; a < 129; a += 10) {
+			for (let b = -128; b < 129; b += 10) {
+				writer.row([l, a, b]);
+			}
+		}
+	}
+
+	// All channels, but reduced range
+	for (let a = -50; a < 50; a+=5) {
+		for (let b = -50; b < 50; b+=5) {
+			for (let l = 0; l < 100; l += 5) {
 				writer.row([l, a, b]);
 			}
 		}

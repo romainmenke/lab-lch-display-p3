@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "conversion.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
@@ -15,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/romainmenke/lab-lch-display-p3/issues"
   },
-  "homepage": "https://github.com/romainmenke/lab-lch-display-p3#readme"
+  "homepage": "https://github.com/romainmenke/lab-lch-display-p3#readme",
+  "devDependencies": {
+    "typescript": "^4.5.3"
+  }
 }
