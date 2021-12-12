@@ -9,26 +9,39 @@
 	<style>
 		.container {
 			display: inline-flex;
-			flex-direction: row;
-			flex-wrap: wrap;
-			width: 500px;
+			flex-direction: column;
+			justify-content: space-between;
+			width: 450px;
+			min-height: 650px;
 		}
 
-		#container-rgb div,
-		#container-lab div {
-			height: 10px;
-			width: 10px;
+		#palette-rgb,
+		#palette-rgb-coloraide,
+		#palette-lab {
+			display: inline-flex;
+			flex-direction: row;
+			flex-wrap: wrap;
+			height: 450px;
+			width: 450px;
+		}
+
+		#palette-rgb div,
+		#palette-rgb-coloraide div,
+		#palette-lab div {
+			height: 9px;
+			width: 9px;
 		}
 	</style>
 </head>
 <body>
-	<div style="width: 100%; padding: 20px;">
+	<div style="box-sizing: border-box; padding: 20px;">
 		<label for="lightness">Adjust Lightness value</label>
 		<input type="range" name="" id="lightness" min="0" max="100" step="1" onchange="self.renderColors()">
 		<br>
 	</div>
 
-	<div style="width: 1020px; display: flex; flex-wrap: wrap;">
+	<div style="display: flex; flex-direction: row; overflow-y: scroll;">
+
 		<div class="container" style="padding-right: 20px">
 			<div style="display: block; width: 100%">
 				<p><b>LAB converted to sRGB.</b></p>
@@ -37,8 +50,11 @@
 				<input type="checkbox" name="" id="outline-out-of-gamut-srgb" onchange="self.renderColors()">
 				<p><i>Colors out of gamut for sRGB (with outline) will have been adjusted through chroma reduction in OKLCH.</i></p>
 			</div>
+
+			<div id="palette-rgb"></div>
 		</div>
-		<div class="container">
+
+		<div class="container" style="padding-right: 20px">
 			<div style="display: block; width: 100%">
 				<p><b>LAB rendered natively. (only in Safari >= 15)</b></p>
 
@@ -46,18 +62,47 @@
 				<input type="checkbox" name="" id="outline-out-of-gamut-display-p3" onchange="self.renderColors()">
 				<p><i>It seems as if Safari displays LAB with what is available Display-P3.<br>Colors out of gamut (with outline) for Display-P3 might be clipped or modified in other ways.</i></p>
 			</div>
+
+			<div id="palette-lab"></div>
 		</div>
-		<div id="container-rgb" class="container" style="padding-right: 20px"></div>
-		<div id="container-lab" class="container"></div>
+
+		<div class="container">
+			<div style="display: block; width: 100%">
+				<p><b>LAB converted to sRGB with <a href="https://facelessuser.github.io/coloraide/">coloraide</a>.</b></p>
+			</div>
+		
+			<div id="palette-rgb-coloraide"></div>
+		</div>
+		
+	</div>
+
+	<div>
+		<p>Code used to convert LAB to sRGB with <a href="https://facelessuser.github.io/coloraide/">coloraide</a> : </p>
+		<pre><code>
+	# python3 -m pip install coloraide
+	
+	from coloraide import Color
+
+	l = 50;
+	a = 0;
+	b = 0;
+
+	color = Color('lab({}% {} {})'.format(l, a, b));
+
+	color.convert('oklch').fit('srgb', method='lch-chroma').convert('srgb').fit('srgb', method='clip').coords();
+		</code></pre>
 	</div>
 
 	<script type="module">
 		import { labToSRgb, labToP3 } from "./dist/convert-lab-to-srgb.js";
 
+		const coloraideDate = await fetch("./coloraide-lab.json").then(r => r.json());
+
 		const matrixRowSize = 50;
 
-		const containerRGB = document.getElementById("container-rgb");
-		const containerLAB = document.getElementById("container-lab");
+		const paletteRGB = document.getElementById("palette-rgb");
+		const paletteLAB = document.getElementById("palette-lab");
+		const paletteRGBColorAide = document.getElementById("palette-rgb-coloraide");
 		const matrix = [];
 
 		self.renderColors = function renderColors() {
@@ -73,8 +118,9 @@
 				for (let y = 0; y < matrixRowSize; y++) {
 					if (!matrix[x][y]) {
 						matrix[x][y] = {
-							rgb: containerRGB.appendChild(document.createElement("div")),
-							lab: containerLAB.appendChild(document.createElement("div")),
+							rgb: paletteRGB.appendChild(document.createElement("div")),
+							lab: paletteLAB.appendChild(document.createElement("div")),
+							rgbColorAide: paletteRGBColorAide.appendChild(document.createElement("div"))
 						};
 					}
 
@@ -93,6 +139,9 @@
 						matrix[x][y].rgb.style.outline = "0.5px dotted transparent";
 					}
 
+					matrix[x][y].lab.style.backgroundColor = `lab(${lightness}% ${lab[1]} ${lab[2]})`;
+					matrix[x][y].lab.setAttribute('title', `rgb(${Math.round(color[0] * 255)}, ${Math.round(color[1] * 255)}, ${Math.round(color[2] * 255)})\nlab(${lightness}% ${Math.round(lab[1])} ${Math.round(lab[2])})`);
+
 					if (showOutlineP3 && !labToP3(lab).inGamut) {
 						if (lightness < 50) {
 							matrix[x][y].lab.style.outline = "0.5px dotted white";
@@ -103,8 +152,8 @@
 						matrix[x][y].lab.style.outline = "0.5px dotted transparent";
 					}
 
-					matrix[x][y].lab.style.backgroundColor = `lab(${lightness}% ${lab[1]} ${lab[2]})`;
-					matrix[x][y].lab.setAttribute('title', `rgb(${Math.round(color[0] * 255)}, ${Math.round(color[1] * 255)}, ${Math.round(color[2] * 255)})\nlab(${lightness}% ${Math.round(lab[1])} ${Math.round(lab[2])})`);
+					matrix[x][y].rgbColorAide.style.backgroundColor = `rgb(${Math.round(coloraideDate[lightness][y + (x * matrixRowSize)][0] * 255)}, ${Math.round(coloraideDate[lightness][y + (x * matrixRowSize)][1] * 255)}, ${Math.round(coloraideDate[lightness][y + (x * matrixRowSize)][2] * 255)})`;
+					matrix[x][y].rgbColorAide.setAttribute('title', `rgb(${Math.round(coloraideDate[lightness][y + (x * matrixRowSize)][0] * 255)}, ${Math.round(coloraideDate[lightness][y + (x * matrixRowSize)][1] * 255)}, ${Math.round(coloraideDate[lightness][y + (x * matrixRowSize)][2] * 255)})\nlab(${lightness}% ${Math.round(lab[1])} ${Math.round(lab[2])})`);
 				}
 			}
 		}
