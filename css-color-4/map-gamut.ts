@@ -3,35 +3,26 @@ import { deltaEOK } from './deltaEOK.js';
 type color = [number, number, number];
 
 export function mapGamut(startOKLCH: color, toDestination: (x: color) => color, fromDestination: (x: color) => color): color {
-	return binarySearchGamut(startOKLCH, startOKLCH[1] / 3, toDestination, fromDestination);
+	return binarySearchGamut(startOKLCH, toDestination, fromDestination);
 }
 
-function binarySearchGamut(startOKLCH: color, startAmount: number, toDestination: (x: color) => color, fromDestination: (x: color) => color): color {
-	let currentAmount = startAmount;
-	let current = startOKLCH;
+function binarySearchGamut(startOKLCH: color, toDestination: (x: color) => color, fromDestination: (x: color) => color): color {
+	let min = 0;
+	let max = startOKLCH[1];
+	const current = startOKLCH;
 
-	while (currentAmount > 0.000001) {
-		
-		const reducedChroma = [current[0], current[1] - currentAmount, current[2]] as color;
-		const converted = toDestination([...reducedChroma]);
-
-		currentAmount = currentAmount / 2;
-		if (reducedChroma[1] <= 0) {
-			continue
+	while (max - min > 0.0001) {
+		const clipped = clip(toDestination(current));
+		const deltaE = deltaEOK(current, fromDestination(clipped));
+		// are we inside the gamut (or very close to the boundary, outside)
+		if (deltaE - 0.02 < 0.0001) {
+			min = current[1];
 		}
-
-		if (inGamut(converted)) {
-			continue;
+		else {
+			max = current[1];
 		}
-
-		const convertedClipped = clip(converted);
-		const clippedOKLCH = fromDestination([...convertedClipped]);
-		if (deltaEOK(reducedChroma, clippedOKLCH) < 0.02) {
-			return convertedClipped;
-		}
-
-		currentAmount = startAmount;
-		current = reducedChroma;
+		// binary search
+		current[1] = (max + min) / 2;
 	}
 
 	return clip(toDestination([...current]));

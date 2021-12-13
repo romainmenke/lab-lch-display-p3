@@ -156,8 +156,13 @@
 						matrix[x][y].lab.style.outline = "0.5px dotted transparent";
 					}
 
-					matrix[x][y].rgbColorAide.style.backgroundColor = `rgb(${Math.round(coloraideDate[lightness][y + (x * matrixRowSize)][0] * 255)}, ${Math.round(coloraideDate[lightness][y + (x * matrixRowSize)][1] * 255)}, ${Math.round(coloraideDate[lightness][y + (x * matrixRowSize)][2] * 255)})`;
-					matrix[x][y].rgbColorAide.setAttribute('title', `rgb(${Math.round(coloraideDate[lightness][y + (x * matrixRowSize)][0] * 255)}, ${Math.round(coloraideDate[lightness][y + (x * matrixRowSize)][1] * 255)}, ${Math.round(coloraideDate[lightness][y + (x * matrixRowSize)][2] * 255)})\nlab(${lightness}% ${Math.round(lab[1])} ${Math.round(lab[2])})`);
+					const colorAideLightness = lightness === 100 ? 99 : lightness
+					if (lightness === 100 && !self.loggedBuggedA) {
+						self.loggedBuggedA = true;
+						console.log('you found a bug! coloraide data only goes to lightness 99. not going to fix, sorry');
+					}
+					matrix[x][y].rgbColorAide.style.backgroundColor = `rgb(${Math.round(coloraideDate[colorAideLightness][y + (x * matrixRowSize)][0] * 255)}, ${Math.round(coloraideDate[colorAideLightness][y + (x * matrixRowSize)][1] * 255)}, ${Math.round(coloraideDate[colorAideLightness][y + (x * matrixRowSize)][2] * 255)})`;
+					matrix[x][y].rgbColorAide.setAttribute('title', `rgb(${Math.round(coloraideDate[colorAideLightness][y + (x * matrixRowSize)][0] * 255)}, ${Math.round(coloraideDate[colorAideLightness][y + (x * matrixRowSize)][1] * 255)}, ${Math.round(coloraideDate[colorAideLightness][y + (x * matrixRowSize)][2] * 255)})\nlab(${colorAideLightness}% ${Math.round(lab[1])} ${Math.round(lab[2])})`);
 				}
 			}
 		}
