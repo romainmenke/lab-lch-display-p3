@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Display-P3 : interactive</title>
+
+	<style>
+		.container {
+			display: inline-flex;
+			flex-direction: column;
+			justify-content: space-between;
+			width: 650px;
+			min-height: 850px;
+		}
+
+		#palette-rgb,
+		#palette-display-p3 {
+			display: inline-flex;
+			flex-direction: row;
+			flex-wrap: wrap;
+			height: 650px;
+			width: 650px;
+		}
+
+		#palette-rgb div,
+		#palette-display-p3 div {
+			height: 13px;
+			width: 13px;
+		}
+
+		#palette-display-p3[overlaid] div {
+			border-radius: 999999px;
+			height: 9px;
+			width: 9px;
+			margin: 2px;
+		}
+	</style>
+</head>
+<body>
+	<h1>Display-P3 conversions</h1>
+	<p>Interactive color checker for Display-P3 conversions.<br>Read more : <a href="https://drafts.csswg.org/css-color-4/#binsearch">https://drafts.csswg.org/css-color-4/#binsearch</a></p>
+	
+	<p><i>This code is not written for performance and will run very slowly on older/under powered machines.</i></p>
+	<div style="box-sizing: border-box; padding: 20px;">
+		<label for="red">Adjust Red value</label>
+		<input type="range" name="" id="red" min="0" max="1" step="0.01" onchange="self.renderColors()">
+		<br>
+	</div>
+
+	<div style="display: flex; flex-direction: row; overflow-y: scroll;">
+
+		<div class="container" style="padding-right: 20px">
+			<div style="display: block; width: 100%">
+				<h2>Display-P3 converted to sRGB.</h2>
+				
+				<label for="outline-out-of-gamut-srgb">Outline out of gamut colors for sRGB</label>
+				<input type="checkbox" name="" id="outline-out-of-gamut-srgb" onchange="self.renderColors()">
+				<p><i>Colors out of gamut for sRGB (with outline) will have been adjusted through chroma reduction in OKLCH.</i></p>
+			</div>
+
+			<div id="palette-rgb"></div>
+		</div>
+
+		<div class="container" style="padding-right: 20px">
+			<div style="display: block; width: 100%">
+				<h2>Display-P3B rendered natively.<br>(only in Safari >= 15)</h2>
+
+				<label for="overlay">Overlay native on top of conversion</label>
+				<input type="checkbox" name="" id="overlay" onchange="self.overlay()">
+				<p><i>Native Display-P3 will be shown on top of sRGB conversions as circles.</i></p>
+			</div>
+
+			<div id="palette-display-p3"></div>
+		</div>
+	</div>
+
+
+	<script type="module">
+		import { p3ToSRgb } from "./dist/convert-p3-to-srgb.js";
+		const matrixRowSize = 50;
+
+		const paletteRGB = document.getElementById("palette-rgb");
+		const paletteDisplayP3 = document.getElementById("palette-display-p3");
+		const matrix = [];
+
+		self.overlay = function overlay() {
+			const current = window.getComputedStyle(paletteDisplayP3).position;
+			if (current === "absolute") {
+				paletteDisplayP3.removeAttribute('overlaid');
+				paletteDisplayP3.style.position = "relative";
+				paletteDisplayP3.style.left = "initial";
+				paletteDisplayP3.style.top = "initial";
+				paletteDisplayP3.style.opacity = "initial";
+			} else {
+				const rect = getCoords(paletteRGB);
+				paletteDisplayP3.setAttribute('overlaid', '');
+				paletteDisplayP3.style.position = "absolute";
+				paletteDisplayP3.style.left = rect.left + "px";
+				paletteDisplayP3.style.top = rect.top + "px";
+				paletteDisplayP3.style.opacity = 0.5;
+			}
+		}
+
+		self.renderColors = function renderColors() {
+			const red = document.getElementById("red").value * 1;
+			const showOutlineSRGB = document.getElementById("outline-out-of-gamut-srgb").checked;
+
+			for (let x = 0; x < matrixRowSize; x++) {
+				if (!matrix[x]) {
+					matrix[x] = [];
+				}
+
+				for (let y = 0; y < matrixRowSize; y++) {
+					if (!matrix[x][y]) {
+						matrix[x][y] = {
+							rgb: paletteRGB.appendChild(document.createElement("div")),
+							displayP3: paletteDisplayP3.appendChild(document.createElement("div")),
+						};
+					}
+
+					const displayP3 = [red, x / matrixRowSize, y / matrixRowSize];
+					const { color: color, inGamut: inGamut } = p3ToSRgb(displayP3);
+					matrix[x][y].rgb.style.backgroundColor = `rgb(${Math.round(color[0] * 255)}, ${Math.round(color[1] * 255)}, ${Math.round(color[2] * 255)})`;
+					matrix[x][y].rgb.setAttribute('title', `rgb(${Math.round(color[0] * 255)}, ${Math.round(color[1] * 255)}, ${Math.round(color[2] * 255)})\ncolor(display-p3 ${red} ${Math.round(displayP3[1])} ${Math.round(displayP3[2])})`);
+
+					if (showOutlineSRGB && !inGamut) {
+						if (color[0] + color[1] + color[2] < 1.5) {
+							matrix[x][y].rgb.style.outline = "0.5px dotted #fff8";
+						} else {
+							matrix[x][y].rgb.style.outline = "0.5px dotted #0008";
+						}
+					} else {
+						matrix[x][y].rgb.style.outline = "0.5px dotted transparent";
+					}
+
+					matrix[x][y].displayP3.style.backgroundColor = `color(display-p3 ${red} ${displayP3[1]} ${displayP3[2]})`;
+					matrix[x][y].displayP3.setAttribute('title', `rgb(${Math.round(color[0] * 255)}, ${Math.round(color[1] * 255)}, ${Math.round(color[2] * 255)})\ncolor(display-p3 ${red} ${Math.round(displayP3[1])} ${Math.round(displayP3[2])})`);
+				}
+			}
+		}
+
+		function getCoords(elem) {
+				var box = elem.getBoundingClientRect();
+
+				var body = document.body;
+				var docEl = document.documentElement;
+
+				var scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop;
+				var scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft;
+
+				var clientTop = docEl.clientTop || body.clientTop || 0;
+				var clientLeft = docEl.clientLeft || body.clientLeft || 0;
+
+				var top = box.top + scrollTop - clientTop;
+				var left = box.left + scrollLeft - clientLeft;
+
+				return { top: Math.round(top), left: Math.round(left) };
+			}
+
+		self.renderColors()
+	</script>
+</body>
+</html>
