@@ -272,6 +272,8 @@
 
 			if (!labToP3(yLAB).inGamut) {
 				document.getElementById("y-result").style.outline = "1px solid red";
+			} else if (!labToSRgb(yLAB).inGamut) {
+				document.getElementById("y-result").style.outline = "1px solid blue";
 			} else {
 				document.getElementById("y-result").style.outline = "1px solid transparent";
 			}
