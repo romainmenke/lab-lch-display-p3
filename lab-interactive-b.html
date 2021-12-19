@@ -115,7 +115,7 @@
 
 		<div class="container" style="padding-right: 20px">
 			<div style="display: block; width: 100%">
-				<h2>LAB converted to Display-P3.</h2>
+				<h2>LAB converted to Display-P3 and sRGB.</h2>
 			</div>
 
 			<div id="palette-display-p3">
@@ -129,13 +129,12 @@
 			</div>
 
 			<div id="palette-rgb">
-				<div style="position: absolute; right: -116px; width: 100px;">rgb</div>
+				<div style="position: absolute; right: -116px; width: 100px;">srgb</div>
 			</div>
 
 			<div style="display: block; width: 100%">
-				<h2>LAB rendered natively.<br>(only in Safari >= 15)</h2>
-
-				<label for="overlay">Overlay native on top of conversion</label>
+				<br>
+				<label for="overlay">Overlay LAB rendered natively (only in Safari >= 15) on top of conversion</label>
 				<input type="checkbox" name="" id="overlay" onchange="self.overlay()">
 				<p><i>Native LAB will be shown on top of Display-P3 conversions as pill shapes.</i></p>
 			</div>
