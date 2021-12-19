@@ -51,8 +51,12 @@
 </head>
 <body>
 	<h1>LAB conversions</h1>
-	<p>Interactive color checker for LAB conversions.<br>Read more : <a href="https://drafts.csswg.org/css-color-4/#binsearch">https://drafts.csswg.org/css-color-4/#binsearch</a></p>
-	
+	<p>
+		Interactive color checker for LAB conversions.<br>
+		Read more : <a href="https://drafts.csswg.org/css-color-4/#binsearch">https://drafts.csswg.org/css-color-4/#binsearch</a><br>
+		<i>Refresh to get a new set of colors. (clear URL has first)</i>
+	</p>
+
 	<button onclick="self.setLocationHash()">
 		Store current values in URL.
 	</button>
@@ -70,7 +74,7 @@
 	<br>
 
 	<div style="display: flex; flex-direction: row; flex-wrap: wrap;">
-		<div style="display: inline-block; box-sizing: border-box; padding: 20px; background-color: rgb(220,220,220); line-height: 1.5rem;">
+		<div style="display: inline-block; box-sizing: border-box; padding: 20px; background-color: rgb(220,220,220)">
 			<p>Start</p>
 			<label for="x-lightness">Adjust Lightness value</label>
 			<br>
@@ -90,7 +94,7 @@
 			<output id="x-result" name="" for="x-lightness x-a x-b"></output>
 		</div>
 
-		<div style="display: inline-block; box-sizing: border-box; padding: 20px; background-color: rgb(220,220,220); line-height: 1.5rem;">
+		<div style="display: inline-block; box-sizing: border-box; padding: 20px; background-color: rgb(220,220,220)">
 			<p>End</p>
 			<label for="y-lightness">Adjust Lightness value</label>
 			<br>
