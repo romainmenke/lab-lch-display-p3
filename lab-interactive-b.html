@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>LAB : interactive</title>
+
+	<style>
+		html {
+			font-size: 16px;
+			text-shadow: 0 0 1px #fff;
+			background-color: rgb(180,180,180);
+		}
+		.container {
+			display: inline-flex;
+			flex-direction: column;
+			justify-content: space-between;
+			width: 650px;
+		}
+
+		#palette-display-p3,
+		#palette-lab,
+		#palette-rgb {
+			display: inline-flex;
+			flex-direction: row;
+			flex-wrap: wrap;
+			height: 50px;
+			position: relative;
+			width: 1000px;
+		}
+
+		#palette-display-p3 div,
+		#palette-lab div,
+		#palette-rgb div {
+			height: 50px;
+			width: 20px;
+		}
+
+		#palette-lab[overlaid] div {
+			border-radius: 999999px;
+			height: 25px;
+			width: 14px;
+			margin: 3px;
+		}
+
+		#palette-lab[overlaid] .palette-label {
+			display: none;
+		}
+	</style>
+</head>
+<body>
+	<h1>LAB conversions</h1>
+	<p>Interactive color checker for LAB conversions.<br>Read more : <a href="https://drafts.csswg.org/css-color-4/#binsearch">https://drafts.csswg.org/css-color-4/#binsearch</a></p>
+	
+	<button onclick="self.setLocationHash()">
+		Store current values in URL.
+	</button>
+	<br>
+	<button onclick="self.clearLocationHash()">
+		Clear values from URL.
+	</button>
+	<br>
+	<br>
+	
+	<i>When values go out of gamut for <b>Display-P3</b> the result will be outlined in <b>red</b></i>
+	<br>
+	<i>When values go out of gamut for <b>sRGB</b> the result will be outlined in <b>blue</b></i>
+	<br>
+	<br>
+
+	<div style="display: flex; flex-direction: row; flex-wrap: wrap;">
+		<div style="display: inline-block; box-sizing: border-box; padding: 20px; background-color: rgb(220,220,220); line-height: 1.5rem;">
+			<p>Start</p>
+			<label for="x-lightness">Adjust Lightness value</label>
+			<br>
+			<input type="range" name="" id="x-lightness" min="0" max="100" step="1" onchange="self.valuesChanged()">
+			<br>
+
+			<label for="x-a">Adjust A value</label>
+			<br>
+			<input type="range" name="" id="x-a" min="-127" max="128" step="1" onchange="self.valuesChanged()">
+			<br>
+
+			<label for="x-b">Adjust B value</label>
+			<br>
+			<input type="range" name="" id="x-b" min="-127" max="128" step="1" onchange="self.valuesChanged()">
+			<br>
+
+			<output id="x-result" name="" for="x-lightness x-a x-b"></output>
+		</div>
+
+		<div style="display: inline-block; box-sizing: border-box; padding: 20px; background-color: rgb(220,220,220); line-height: 1.5rem;">
+			<p>End</p>
+			<label for="y-lightness">Adjust Lightness value</label>
+			<br>
+			<input type="range" name="" id="y-lightness" min="0" max="100" step="1" onchange="self.valuesChanged()">
+			<br>
+
+			<label for="y-a">Adjust A value</label>
+			<br>
+			<input type="range" name="" id="y-a" min="-127" max="128" step="1" onchange="self.valuesChanged()">
+			<br>
+
+			<label for="y-b">Adjust B value</label>
+			<br>
+			<input type="range" name="" id="y-b" min="-127" max="128" step="1" onchange="self.valuesChanged()">
+			<br>
+
+			<output id="y-result" name="" for="y-lightness y-a y-b"></output>
+		</div>
+	</div>
+
+	<div style="display: flex; flex-direction: column; overflow-y: scroll;">
+
+		<div class="container" style="padding-right: 20px">
+			<div style="display: block; width: 100%">
+				<h2>LAB converted to Display-P3.</h2>
+			</div>
+
+			<div id="palette-display-p3">
+				<div style="position: absolute; right: -116px; width: 100px;">display-p3</div>
+			</div>
+		</div>
+
+		<div class="container" style="padding-right: 20px;">
+			<div id="palette-lab">
+				<div class="palette-label" style="position: absolute; right: -116px; width: 100px;">lab</div>
+			</div>
+
+			<div id="palette-rgb">
+				<div style="position: absolute; right: -116px; width: 100px;">rgb</div>
+			</div>
+
+			<div style="display: block; width: 100%">
+				<h2>LAB rendered natively.<br>(only in Safari >= 15)</h2>
+
+				<label for="overlay">Overlay native on top of conversion</label>
+				<input type="checkbox" name="" id="overlay" onchange="self.overlay()">
+				<p><i>Native LAB will be shown on top of Display-P3 conversions as pill shapes.</i></p>
+			</div>
+		</div>
+	</div>
+
+
+	<script type="module">
+		import { p3ToSRgb } from "./dist/convert-p3-to-srgb.js";
+		import { labToSRgb, labToP3 } from "./dist/convert-lab-to-srgb.js";
+
+		const rowSize = 50;
+
+		const paletteDisplayP3 = document.getElementById("palette-display-p3");
+		const paletteLAB = document.getElementById("palette-lab");
+		const paletteRGB = document.getElementById("palette-rgb");
+		const row = [];
+
+		let xL = Math.round(Math.random() * 100);
+		let xA = Math.round((Math.random() * 255) - 127);
+		let xB = Math.round((Math.random() * 255) - 127);
+
+		let yL = Math.round(Math.random() * 100);
+		let yA = Math.round((Math.random() * 255) - 127);
+		let yB = Math.round((Math.random() * 255) - 127);
+
+		let xLAB = [xL, xA, xB];
+		let yLAB = [yL, yA, yB];
+
+		let xP3 = labToP3(xLAB);
+		let yP3 = labToP3(yLAB);
+
+		let counter = 1;
+		while (!xP3.inGamut) {
+			xL = Math.round(Math.random() * 100);
+			xA = Math.round((Math.random() * 255) - 127);
+			xB = Math.round((Math.random() * 255) - 127);
+
+			xLAB = [xL, xA / counter, xB / counter];
+			[xL, xA, xB] = xLAB;
+
+			xP3 = labToP3(xLAB);
+			counter++;
+		}
+
+		counter = 1;
+		while (!yP3.inGamut) {
+			yL = Math.round(Math.random() * 100);
+			yA = Math.round((Math.random() * 255) - 127);
+			yB = Math.round((Math.random() * 255) - 127);
+
+			yLAB = [yL, yA / counter, yB / counter];
+			[yL, yA, yB] = yLAB;
+
+			yP3 = labToP3(yLAB);
+			counter++;
+		}
+
+		if (location.hash !== '') {
+			const locationValues = JSON.parse(decodeURIComponent(location.hash.substr(1)));
+			xLAB = locationValues[0];
+			[xL, xA, xB] = xLAB;
+			console.log(xLAB);
+
+			yLAB = locationValues[1];
+			[yL, yA, yB] = yLAB;
+			console.log(yLAB);
+		}
+
+		document.getElementById("x-lightness").value = xL;
+		document.getElementById("x-a").value = xA;
+		document.getElementById("x-b").value = xB;
+
+		document.getElementById("y-lightness").value = yL;
+		document.getElementById("y-a").value = yA;
+		document.getElementById("y-b").value = yB;
+
+		self.overlay = function overlay() {
+			const current = window.getComputedStyle(paletteLAB).position;
+			if (current === "absolute") {
+				paletteLAB.removeAttribute('overlaid');
+				paletteLAB.style.position = "relative";
+				paletteLAB.style.left = "initial";
+				paletteLAB.style.top = "initial";
+				paletteLAB.style.opacity = "initial";
+			} else {
+				const rect = getCoords(paletteDisplayP3);
+				paletteLAB.setAttribute('overlaid', '');
+				paletteLAB.style.position = "absolute";
+				paletteLAB.style.left = rect.left + "px";
+				paletteLAB.style.top = rect.top + "px";
+			}
+		}
+
+		self.valuesChanged = function valuesChanged() {
+			xL = document.getElementById("x-lightness").value * 1;
+			xA = document.getElementById("x-a").value * 1;
+			xB = document.getElementById("x-b").value * 1;
+			xLAB = [xL, xA, xB];
+
+			yL = document.getElementById("y-lightness").value * 1;
+			yA = document.getElementById("y-a").value * 1;
+			yB = document.getElementById("y-b").value * 1;
+
+			yLAB = [yL, yA, yB];
+
+			requestAnimationFrame(() => {
+				self.renderColors();
+			});
+		}
+
+		self.setLocationHash = function setLocationHash() {
+			location.hash = encodeURIComponent(JSON.stringify([xLAB.map((x) => Math.round(x)), yLAB.map((x) => Math.round(x))])); 
+		}
+
+		self.clearLocationHash = function clearLocationHash() {
+			location.hash = '';
+		}
+
+		self.renderColors = function renderColors() {
+			document.getElementById("x-result").value = `lab(${Math.round(xLAB[0])}% ${Math.round(xLAB[1])} ${Math.round(xLAB[2])})`;
+			document.getElementById("y-result").value = `lab(${Math.round(yLAB[0])}% ${Math.round(yLAB[1])} ${Math.round(yLAB[2])})`;
+
+			if (!labToP3(xLAB).inGamut) {
+				document.getElementById("x-result").style.outline = "1px solid red";
+			} else if (!labToSRgb(xLAB).inGamut) {
+				document.getElementById("x-result").style.outline = "1px solid blue";
+			} else {
+				document.getElementById("x-result").style.outline = "1px solid transparent";
+			}
+
+			if (!labToP3(yLAB).inGamut) {
+				document.getElementById("y-result").style.outline = "1px solid red";
+			} else {
+				document.getElementById("y-result").style.outline = "1px solid transparent";
+			}
+
+			for (let x = 0; x < rowSize; x++) {
+				if (!row[x]) {
+					row[x] = {
+						displayP3: paletteDisplayP3.appendChild(document.createElement("div")),
+						lab: paletteLAB.appendChild(document.createElement("div")),
+						rgb: paletteRGB.appendChild(document.createElement("div")),
+					};
+				}
+
+				let iL = [
+					(((yL - xL) / (rowSize - 1)) * x) + xL,
+					(((yA - xA) / (rowSize - 1)) * x) + xA,
+					(((yB - xB) / (rowSize - 1)) * x) + xB,
+				];
+
+				const { color: color, inGamut: inGamut } = labToP3(iL);
+				const { color: colorRGB, inGamut: inGamutRGB } = labToSRgb(iL);
+				row[x].displayP3.style.backgroundColor = `color(display-p3 ${color[0]} ${color[1]} ${color[2]})`;
+				row[x].displayP3.setAttribute('title', `color(display-p3 ${color[0]} ${color[1]} ${color[2]})\nlab(${iL[0]}% ${iL[1]} ${iL[2]})`);
+
+				row[x].rgb.style.backgroundColor = `rgb(${Math.round(colorRGB[0]*255)}, ${Math.round(colorRGB[1]*255)}, ${Math.round(colorRGB[2]*255)})`;
+				row[x].rgb.setAttribute('title', `rgb(${Math.round(colorRGB[0] * 255)}, ${Math.round(colorRGB[1] * 255)}, ${Math.round(colorRGB[2] * 255)})\nlab(${iL[0]}% ${iL[1]} ${iL[2]})`);
+
+				row[x].lab.style.backgroundColor = `lab(${iL[0]}% ${iL[1]} ${iL[2]})`;
+				row[x].lab.setAttribute('title', `color(display-p3 ${color[0]} ${color[1]} ${color[2]})\nlab(${iL[0]}% ${iL[1]} ${iL[2]})`);
+			}
+		}
+
+		function getCoords(elem) {
+				var box = elem.getBoundingClientRect();
+
+				var body = document.body;
+				var docEl = document.documentElement;
+
+				var scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop;
+				var scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft;
+
+				var clientTop = docEl.clientTop || body.clientTop || 0;
+				var clientLeft = docEl.clientLeft || body.clientLeft || 0;
+
+				var top = box.top + scrollTop - clientTop;
+				var left = box.left + scrollLeft - clientLeft;
+
+				return { top: Math.round(top), left: Math.round(left) };
+			}
+
+		self.renderColors()
+	</script>
+</body>
+</html>
