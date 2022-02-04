@@ -34,7 +34,7 @@ export function labToP3(lab: color): { color: color, inGamut: boolean } {
 			x = OKLCH_to_OKLab(x);
 			x = OKLab_to_XYZ(x);
 			x = XYZ_to_lin_P3(x);
-			return gam_sRGB(x);
+			return gam_P3(x);
 		}, (x: color) => {
 			x = lin_P3(x);
 			x = lin_P3_to_XYZ(x);
