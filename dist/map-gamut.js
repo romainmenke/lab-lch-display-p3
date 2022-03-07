@@ -1,3 +1,4 @@
+import { OKLCH_to_OKLab } from './conversions.js';
 import { deltaEOK } from './deltaEOK.js';
 export function mapGamut(startOKLCH, toDestination, fromDestination) {
     return binarySearchGamut(startOKLCH, toDestination, fromDestination);
@@ -8,7 +9,7 @@ function binarySearchGamut(startOKLCH, toDestination, fromDestination) {
     const current = startOKLCH;
     while (max - min > 0.0001) {
         const clipped = clip(toDestination(current));
-        const deltaE = deltaEOK(current, fromDestination(clipped));
+        const deltaE = deltaEOK(OKLCH_to_OKLab(current), OKLCH_to_OKLab(fromDestination(clipped)));
         // are we inside the gamut (or very close to the boundary, outside)
         if (deltaE - 0.02 < 0.0001) {
             min = current[1];
